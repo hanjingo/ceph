@@ -38,11 +38,11 @@
 class Message;
 class Messenger;
 
-struct Connection : public RefCountedObject {
-  mutable Mutex lock;
+struct Connection : public RefCountedObject { // socket连接封装
+  mutable Mutex lock;       // 锁保护Connection的所有字段
   Messenger *msgr;
-  RefCountedObject *priv;
-  int peer_type;
+  RefCountedObject *priv;   // 链接的私有数据
+  int peer_type;            // 链接的peer类型
   entity_addr_t peer_addr;
   utime_t last_keepalive, last_keepalive_ack;
 private:

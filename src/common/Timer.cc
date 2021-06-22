@@ -73,7 +73,7 @@ void SafeTimer::shutdown()
   }
 }
 
-void SafeTimer::timer_thread()
+void SafeTimer::timer_thread() // 执行定时任务
 {
   lock.Lock();
   ldout(cct,10) << "timer_thread starting" << dendl;
@@ -123,7 +123,7 @@ Context* SafeTimer::add_event_after(double seconds, Context *callback)
   return add_event_at(when, callback);
 }
 
-Context* SafeTimer::add_event_at(utime_t when, Context *callback)
+Context* SafeTimer::add_event_at(utime_t when, Context *callback) // 添加定时任务
 {
   assert(lock.is_locked());
   ldout(cct,10) << __func__ << " " << when << " -> " << callback << dendl;
@@ -148,7 +148,7 @@ Context* SafeTimer::add_event_at(utime_t when, Context *callback)
   return callback;
 }
 
-bool SafeTimer::cancel_event(Context *callback)
+bool SafeTimer::cancel_event(Context *callback) // 取消定时任务
 {
   assert(lock.is_locked());
   

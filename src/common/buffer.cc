@@ -167,15 +167,15 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
   buffer::error_code::error_code(int error) :
     buffer::malformed_input(cpp_strerror(error).c_str()), code(error) {}
 
-  class buffer::raw {
+  class buffer::raw { // 一个原始的数据buffer
   public:
-    char *data;
-    unsigned len;
-    std::atomic<unsigned> nref { 0 };
+    char *data;                         // 数据指针
+    unsigned len;                       // 数据长度
+    std::atomic<unsigned> nref { 0 };   // 引用计数
     int mempool;
 
-    mutable std::atomic_flag crc_spinlock = ATOMIC_FLAG_INIT;
-    map<pair<size_t, size_t>, pair<uint32_t, uint32_t> > crc_map;
+    mutable std::atomic_flag crc_spinlock = ATOMIC_FLAG_INIT;       // 原子锁，用来保护crc_map
+    map<pair<size_t, size_t>, pair<uint32_t, uint32_t> > crc_map;   // crc校验信息，前面为数据段的起始和结束，后面是crc32校验
 
     explicit raw(unsigned l, int mempool=mempool::mempool_buffer_anon)
       : data(NULL), len(l), nref(0), mempool(mempool) {
@@ -357,7 +357,7 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
   };
 
 #ifndef __CYGWIN__
-  class buffer::raw_mmap_pages : public buffer::raw {
+  class buffer::raw_mmap_pages : public buffer::raw { // 通过mmap来把内存匿名映射到进程的地址空间
   public:
     MEMPOOL_CLASS_HELPERS();
 
@@ -379,7 +379,7 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
     }
   };
 
-  class buffer::raw_posix_aligned : public buffer::raw {
+  class buffer::raw_posix_aligned : public buffer::raw { // 调用函数posix_memalign来申请内存地址对齐的内存空间
     unsigned align;
   public:
     MEMPOOL_CLASS_HELPERS();
@@ -412,7 +412,7 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
 #endif
 
 #ifdef __CYGWIN__
-  class buffer::raw_hack_aligned : public buffer::raw {
+  class buffer::raw_hack_aligned : public buffer::raw { // 在系统不支持内存对齐申请的情况下自己实现了内存地址的对齐
     unsigned align;
     char *realdata;
   public:
@@ -442,7 +442,7 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
 #endif
 
 #ifdef CEPH_HAVE_SPLICE
-  class buffer::raw_pipe : public buffer::raw {
+  class buffer::raw_pipe : public buffer::raw { // 实现pipe作为buffer的内存空间
   public:
     MEMPOOL_CLASS_HELPERS();
 
@@ -621,7 +621,7 @@ static std::atomic_flag buffer_debug_lock = ATOMIC_FLAG_INIT;
   /*
    * primitive buffer types
    */
-  class buffer::raw_char : public buffer::raw {
+  class buffer::raw_char : public buffer::raw { // buffer, 使用new操作符来申请内存空间
   public:
     MEMPOOL_CLASS_HELPERS();
 

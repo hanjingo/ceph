@@ -81,7 +81,7 @@ void ThreadPool::handle_conf_change(const struct md_config_t *conf,
   }
 }
 
-void ThreadPool::worker(WorkThread *wt)
+void ThreadPool::worker(WorkThread *wt) // 线程池的执行函数
 {
   _lock.Lock();
   ldout(cct,10) << "worker start" << dendl;
@@ -90,18 +90,18 @@ void ThreadPool::worker(WorkThread *wt)
   ss << name << " thread " << (void *)pthread_self();
   heartbeat_handle_d *hb = cct->get_heartbeat_map()->add_worker(ss.str(), pthread_self());
 
-  while (!_stop) {
+  while (!_stop) { // 检查_stop标志，确保线程没有关闭
 
     // manage dynamic thread pool
-    join_old_threads();
-    if (_threads.size() > _num_threads) {
+    join_old_threads();                     // 释放旧线程
+    if (_threads.size() > _num_threads) {   // 如果线程数量>额定的值，删除当前线程
       ldout(cct,1) << " worker shutting down; too many threads (" << _threads.size() << " > " << _num_threads << ")" << dendl;
       _threads.erase(wt);
       _old_threads.push_back(wt);
       break;
     }
 
-    if (!_pause && !work_queues.empty()) {
+    if (!_pause && !work_queues.empty()) { // 如果没有暂停&&工作队列不为空，开始工作
       WorkQueue_* wq;
       int tries = work_queues.size();
       bool did = false;

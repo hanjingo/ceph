@@ -24,15 +24,15 @@
 class CephContext;
 
 /// Pool of threads that share work submitted to multiple work queues.
-class ThreadPool : public md_config_obs_t {
+class ThreadPool : public md_config_obs_t { // 线程池
   CephContext *cct;
-  string name;
+  string name;        // 线程池的名字
   string thread_name;
-  string lockname;
-  Mutex _lock;
-  Cond _cond;
-  bool _stop;
-  int _pause;
+  string lockname;    // 锁的名字
+  Mutex _lock;        // 线程互斥的锁，也是工作队列访问互斥的锁
+  Cond _cond;         // 锁对应的条件变量
+  bool _stop;         // 线程池是否停止的标志
+  int _pause;         // 暂时中止线程池的标志
   int _draining;
   Cond _wait_cond;
   int ioprio_class, ioprio_priority;
@@ -41,9 +41,9 @@ public:
   class TPHandle {
     friend class ThreadPool;
     CephContext *cct;
-    heartbeat_handle_d *hb;
-    time_t grace;
-    time_t suicide_grace;
+    heartbeat_handle_d *hb; // 心跳
+    time_t grace;           // 超时
+    time_t suicide_grace;   // 自杀的超时时间
   public:
     TPHandle(
       CephContext *cct,
@@ -297,14 +297,14 @@ public:
       pool->remove_work_queue(this);
     }
     
-    bool queue(T *item) {
+    bool queue(T *item) {   // 入队
       pool->_lock.Lock();
       bool r = _enqueue(item);
       pool->_cond.SignalOne();
       pool->_lock.Unlock();
       return r;
     }
-    void dequeue(T *item) {
+    void dequeue(T *item) { // 出队
       pool->_lock.Lock();
       _dequeue(item);
       pool->_lock.Unlock();
@@ -450,8 +450,8 @@ private:
     }
   };
   
-  set<WorkThread*> _threads;
-  list<WorkThread*> _old_threads;  ///< need to be joined
+  set<WorkThread*> _threads;      // 工作线程集合
+  list<WorkThread*> _old_threads; // 等待joined操作的旧线程集合
   int processing;
 
   void start_threads();

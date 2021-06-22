@@ -45,13 +45,13 @@ class Finisher {
   /// Queue for contexts for which complete(0) will be called.
   /// NULLs in this queue indicate that an item from finisher_queue_rval
   /// should be completed in that place instead.
-  vector<Context*> finisher_queue;
+  vector<Context*> finisher_queue;               // 需要执行的Context，成功返回值为0
 
   string thread_name;
 
   /// Queue for contexts for which the complete function will be called
   /// with a parameter other than 0.
-  list<pair<Context*,int> > finisher_queue_rval;
+  list<pair<Context*,int> > finisher_queue_rval; // 需要执行的Context，返回值为int类型的有效值
 
   /// Performance counter for the finisher's queue length.
   /// Only active for named finishers.

@@ -171,9 +171,9 @@ namespace buffer CEPH_BUFFER_API {
   /*
    * a buffer pointer.  references (a subsequence of) a raw buffer.
    */
-  class CEPH_BUFFER_API ptr {
+  class CEPH_BUFFER_API ptr { // buffer::raw的一个数据段
     raw *_raw;
-    unsigned _off, _len;
+    unsigned _off, _len; // _off:偏移量, _len:ptr的长度
 
     void release();
 
@@ -348,12 +348,12 @@ namespace buffer CEPH_BUFFER_API {
    * list - the useful bit!
    */
 
-  class CEPH_BUFFER_API list {
+  class CEPH_BUFFER_API list { // 多个buffer::ptr的列表
     // my private bits
-    std::list<ptr> _buffers;
-    unsigned _len;
-    unsigned _memcopy_count; //the total of memcopy using rebuild().
-    ptr append_buffer;  // where i put small appends.
+    std::list<ptr> _buffers; // 所有的ptr
+    unsigned _len;           // 所有的ptr的数据总长度
+    unsigned _memcopy_count; // 当调用rebuild函数来作内存对齐时，需要内存拷贝的数据量
+    ptr append_buffer;       // 当有小的数据就添加到这个buffer里
 
   public:
     class iterator;
@@ -375,7 +375,7 @@ namespace buffer CEPH_BUFFER_API {
       bl_t* bl;
       list_t* ls;  // meh.. just here to avoid an extra pointer dereference..
       unsigned off; // in bl
-      list_iter_t p;
+      list_iter_t p; // 迭代器
       unsigned p_off;   // in *p
       friend class iterator_impl<true>;
 
@@ -657,7 +657,7 @@ namespace buffer CEPH_BUFFER_API {
     }
 
   private:
-    mutable iterator last_p;
+    mutable iterator last_p; // 迭代器
     int zero_copy_to_fd(int fd) const;
 
   public:

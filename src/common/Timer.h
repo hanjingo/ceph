@@ -27,17 +27,17 @@ class SafeTimer
   CephContext *cct;
   Mutex& lock;
   Cond cond;
-  bool safe_callbacks;
+  bool safe_callbacks;                                                   // 是否是safe_callbacks
 
   friend class SafeTimerThread;
-  SafeTimerThread *thread;
+  SafeTimerThread *thread;                                               // 定时执行线程
 
   void timer_thread();
   void _shutdown();
 
-  std::multimap<utime_t, Context*> schedule;
-  std::map<Context*, std::multimap<utime_t, Context*>::iterator> events;
-  bool stopping;
+  std::multimap<utime_t, Context*> schedule;                             // 目标时间和定时任务执行函数
+  std::map<Context*, std::multimap<utime_t, Context*>::iterator> events; // 定时任务在schedule中的位置映射
+  bool stopping;                                                         // 是否停止
 
   void dump(const char *caller = 0) const;
 

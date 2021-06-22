@@ -34,11 +34,11 @@ namespace ceph {
 #define INT64_MIN ((int64_t)0x8000000000000000ll)
 #endif
 
-struct hobject_t {
+struct hobject_t { // hash对象
   object_t oid;
   snapid_t snap;
 private:
-  uint32_t hash;
+  uint32_t hash;  // 一般为pg的id，不能和key同时设置
   bool max;
   uint32_t nibblewise_key_cache;
   uint32_t hash_reverse_bits;
@@ -46,11 +46,11 @@ private:
   static const int64_t POOL_TEMP_START = -2; // and then negative
   friend class spg_t;  // for POOL_TEMP_START
 public:
-  int64_t pool;
-  string nspace;
+  int64_t pool;  // 所在的pool的id
+  string nspace; // 标识特殊对象，一般为空
 
 private:
-  string key;
+  string key;    // 对象的特殊标记
 
   class hobject_t_max {};
 
@@ -352,10 +352,10 @@ static inline int cmp(const T&, const hobject_t&r) {
 
 typedef version_t gen_t;
 
-struct ghobject_t {
+struct ghobject_t { // 用于ErasureCode模式下的pg对象
   hobject_t hobj;
-  gen_t generation;
-  shard_id_t shard_id;
+  gen_t generation;    // 版本号
+  shard_id_t shard_id; // 所在的osd在EC类型的pg中的序号
   bool max;
 
 public:

@@ -29,8 +29,8 @@ using namespace std;
 #include "ceph_hash.h"
 #include "cmp.h"
 
-struct object_t {
-  string name;
+struct object_t { // 本地文件系统的一个文件对象
+  string name; // 对象名
 
   object_t() {}
   // cppcheck-suppress noExplicitConstructor
@@ -149,9 +149,9 @@ inline ostream& operator<<(ostream& out, const snapid_t& s) {
 }
 
 
-struct sobject_t {
+struct sobject_t { // 对象+快照信息
   object_t oid;
-  snapid_t snap;
+  snapid_t snap; // 快照序号；如果不是快照对象，则值为CEPH_NOSNAP
 
   sobject_t() : snap(0) {}
   sobject_t(object_t o, snapid_t s) : oid(o), snap(s) {}

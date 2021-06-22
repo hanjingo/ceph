@@ -26,13 +26,13 @@ class PerfCounters;
  * excessive requests for more of them are delayed, until some slots are put
  * back, so @p get_current() drops below the limit after fulfills the requests.
  */
-class Throttle {
+class Throttle { // 限制消费的资源数量
   CephContext *cct;
   const std::string name;
   PerfCounters *logger;
-  std::atomic<int64_t> count = { 0 }, max = { 0 };
-  Mutex lock;
-  list<Cond*> cond;
+  std::atomic<int64_t> count = { 0 }, max = { 0 }; // count:当前消耗的资源数量, max:最大的资源数量
+  Mutex lock;       // 等待的锁
+  list<Cond*> cond; // 等待的条件变量
   const bool use_perf;
   bool shutting_down = false;
   Cond shutdown_clear;
@@ -93,24 +93,24 @@ public:
   int64_t take(int64_t c = 1);
 
   /**
-   * get the specified amount of slots from the stock, but will wait if the
-   * total number taken by consumer would exceed the maximum number.
-   * @param c number of slots to get
-   * @param m new maximum number to set, ignored if it is 0
+   * 获取数量为c个slot
+   *
+   * @param c 要拿的槽数量
+   * @param m 不为0时，用来重新设置slot的max值
    * @returns true if this request is blocked due to the throttling, false 
    * otherwise
    */
   bool get(int64_t c = 1, int64_t m = 0);
 
   /**
-   * the unblocked version of @p get()
-   * @returns true if it successfully got the requested amount,
+   * 拿不到数量为c个slot时，就直接返回false，不阻塞等待
+   * 
    * or false if it would block.
    */
   bool get_or_fail(int64_t c = 1);
 
   /**
-   * put slots back to the stock
+   * 释放数量为c个slot资源
    * @param c number of slots to return
    * @returns number of requests being hold after this
    */

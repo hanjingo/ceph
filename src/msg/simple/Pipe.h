@@ -39,10 +39,10 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
    */
   class Pipe : public RefCountedObject {
     /**
-     * The Reader thread handles all reads off the socket -- not just
-     * Messages, but also acks and other protocol bits (excepting startup,
-     * when the Writer does a couple of reads).
-     * All the work is implemented in Pipe itself, of course.
+     * 接收线程
+     *    用来接收数据
+     *
+     * 
      */
     class Reader : public Thread {
       Pipe *pipe;
@@ -52,8 +52,8 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
     } reader_thread;
 
     /**
-     * The Writer thread handles all writes to the socket (after startup).
-     * All the work is implemented in Pipe itself, of course.
+     * 发送线程
+     *    用来发送数据
      */
     class Writer : public Thread {
       Pipe *pipe;
@@ -67,9 +67,9 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
   public:
     Pipe(SimpleMessenger *r, int st, PipeConnection *con);
     ~Pipe() override;
-
+    // msgr的指针
     SimpleMessenger *msgr;
-    uint64_t conn_id;
+    uint64_t conn_id; // 分配给Pipe自己唯一的id
     ostream& _pipe_prefix(std::ostream &out) const;
 
     Pipe* get() {
@@ -81,10 +81,10 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
       return state == STATE_OPEN;
     }
 
-    char *recv_buf;
-    size_t recv_max_prefetch;
-    size_t recv_ofs;
-    size_t recv_len;
+    char *recv_buf;           // 接收缓冲区
+    size_t recv_max_prefetch; // 接收缓冲区一次预约的最大值
+    size_t recv_ofs;          // 接收的偏移量
+    size_t recv_len;          // 接收的长度
 
     enum {
       STATE_ACCEPTING,
@@ -113,18 +113,18 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
     }
 
   private:
-    int sd;
-    struct iovec msgvec[SM_IOV_MAX];
+    int sd;                           // pipe对应的sockedfd
+    struct iovec msgvec[SM_IOV_MAX];  // 发送消息的iovec结构
 
   public:
-    int port;
-    int peer_type;
-    entity_addr_t peer_addr;
-    Messenger::Policy policy;
+    int port;                 // 链接端口
+    int peer_type;            // 链接对方的类型
+    entity_addr_t peer_addr;  // 对方地址
+    Messenger::Policy policy; // 策略
     
     Mutex pipe_lock;
-    int state;
-    std::atomic<bool> state_closed = { false }; // true iff state = STATE_CLOSED
+    int state;                                  // 当前链接的状态
+    std::atomic<bool> state_closed = { false }; // 状态是否为STATE_CLOSED
 
     // session_security handles any signatures or encryptions required for this pipe's msgs. PLR
 
@@ -132,7 +132,7 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
 
   protected:
     friend class SimpleMessenger;
-    PipeConnectionRef connection_state;
+    PipeConnectionRef connection_state; // PipeConnection的引用
 
     utime_t backoff;         // backoff time
 
@@ -141,18 +141,18 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
     bool notify_on_dispatch_done; /// something wants a signal when dispatch done
     bool writer_running;
 
-    map<int, list<Message*> > out_q;  // priority queue for outbound msgs
-    DispatchQueue *in_q;
-    list<Message*> sent;
+    map<int, list<Message*> > out_q;    // 准备发送的消息优先队列
+    DispatchQueue *in_q;                // 接收消息的队列
+    list<Message*> sent;                // 要发送的消息
     Cond cond;
     bool send_keepalive;
     bool send_keepalive_ack;
     utime_t keepalive_ack_stamp;
-    bool halt_delivery; //if a pipe's queue is destroyed, stop adding to it
+    bool halt_delivery;                 // 如果Pipe队列销毁，停止增加
     
     __u32 connect_seq, peer_global_seq;
-    uint64_t out_seq;
-    uint64_t in_seq, in_seq_acked;
+    uint64_t out_seq;                   // 发送消息的序列号
+    uint64_t in_seq, in_seq_acked;      // 接收到消息序号和ACK的序号
     
     void set_socket_options();
 
@@ -166,7 +166,7 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
 
     int read_message(Message **pm,
 		     AuthSessionHandler *session_security_copy);
-    int write_message(const ceph_msg_header& h, const ceph_msg_footer& f, bufferlist& body);
+    int write_message(const ceph_msg_header& h, const ceph_msg_footer& f, bufferlist& body); // 发送header,footer,数据list
     /**
      * Write the given data (of length len) to the Pipe's socket. This function
      * will loop until all passed data has been written out.
@@ -241,7 +241,7 @@ static const int SM_IOV_MAX = (IOV_MAX >= 1024 ? IOV_MAX / 4 : IOV_MAX);
     Message *_get_next_outgoing() {
       assert(pipe_lock.is_locked());
       Message *m = 0;
-      while (!m && !out_q.empty()) {
+      while (!m && !out_q.empty()) { // 从out_q移除消息
         map<int, list<Message*> >::reverse_iterator p = out_q.rbegin();
         if (!p->second.empty()) {
           m = p->second.front();

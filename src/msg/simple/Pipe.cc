@@ -1485,7 +1485,7 @@ void Pipe::discard_out_queue()
     }
   out_q.clear();
 }
-
+// 用来处理错误
 void Pipe::fault(bool onread)
 {
   const md_config_t *conf = msgr->cct->_conf;
@@ -1507,7 +1507,7 @@ void Pipe::fault(bool onread)
     return;
   }
 
-  shutdown_socket();
+  shutdown_socket(); // 关闭pipe的socket
 
   // lossy channel?
   if (policy.lossy && state != STATE_CONNECTING) {
@@ -1548,7 +1548,7 @@ void Pipe::fault(bool onread)
   if (delay_thread)
     delay_thread->flush();
 
-  // requeue sent items
+  // 把没有收到ACK的消息重新加入发送队列，当发送队列有请求时，发送线程会不断地常时重新连接
   requeue_sent();
 
   if (policy.standby && !is_queued()) {
@@ -1651,21 +1651,21 @@ void Pipe::stop_and_wait()
     cond.Wait(pipe_lock);
 }
 
-/* read msgs from socket.
- * also, server.
+/* 
+ * 从套接字读消息
  */
 void Pipe::reader()
 {
   pipe_lock.Lock();
 
   if (state == STATE_ACCEPTING) {
-    accept();
+    accept(); // 接受连接请求
     assert(pipe_lock.is_locked());
   }
 
   // loop.
   while (state != STATE_CLOSED &&
-	 state != STATE_CONNECTING) {
+	 state != STATE_CONNECTING) { // 接收消息
     assert(pipe_lock.is_locked());
 
     // sleep if (re)connecting
@@ -1682,7 +1682,7 @@ void Pipe::reader()
 
     char tag = -1;
     ldout(msgr->cct,20) << "reader reading tag..." << dendl;
-    if (tcp_read((char*)&tag, 1) < 0) {
+    if (tcp_read((char*)&tag, 1) < 0) { // 接收一个tag先
       pipe_lock.Lock();
       ldout(msgr->cct,2) << "reader couldn't read tag, " << cpp_strerror(errno) << dendl;
       fault(true);
@@ -1746,7 +1746,7 @@ void Pipe::reader()
     else if (tag == CEPH_MSGR_TAG_MSG) {
       ldout(msgr->cct,20) << "reader got MSG" << dendl;
       Message *m = 0;
-      int r = read_message(&m, auth_handler.get());
+      int r = read_message(&m, auth_handler.get()); // 读消息
 
       pipe_lock.Lock();
       
@@ -1798,7 +1798,7 @@ void Pipe::reader()
       ldout(msgr->cct,10) << "reader got message "
 	       << m->get_seq() << " " << m << " " << *m
 	       << dendl;
-      in_q->fast_preprocess(m);
+      in_q->fast_preprocess(m); // 预处理消息
 
       if (delay_thread) {
         utime_t release;
@@ -1809,10 +1809,10 @@ void Pipe::reader()
         }
         delay_thread->queue(release, m);
       } else {
-        if (in_q->can_fast_dispatch(m)) {
+        if (in_q->can_fast_dispatch(m)) { // 是否可以快速投递
 	  reader_dispatching = true;
           pipe_lock.Unlock();
-          in_q->fast_dispatch(m);
+          in_q->fast_dispatch(m); // 快速投递消息不入mqueue，而是直接调用msg->ms_fast_dispatch并最终调用注册的快速投递函数来处理
           pipe_lock.Lock();
 	  reader_dispatching = false;
 	  if (state == STATE_CLOSED ||
@@ -1821,7 +1821,7 @@ void Pipe::reader()
 	    cond.Signal();
 	  }
         } else {
-          in_q->enqueue(m, m->get_priority(), conn_id);
+          in_q->enqueue(m, m->get_priority(), conn_id); // 把接收到的消息加入到DispatchQueue的mqueue队列里
         }
       }
     }

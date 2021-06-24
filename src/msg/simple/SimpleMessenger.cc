@@ -426,18 +426,18 @@ bool SimpleMessenger::verify_authorizer(Connection *con, int peer_type,
 ConnectionRef SimpleMessenger::get_connection(const entity_inst_t& dest)
 {
   Mutex::Locker l(lock);
-  if (my_inst.addr == dest.addr) {
+  if (my_inst.addr == dest.addr) { // 如果目的地址是“我的内部地址”，直接返回本地连接
     // local
     return local_connection;
   }
 
   // remote
   while (true) {
-    Pipe *pipe = _lookup_pipe(dest.addr);
+    Pipe *pipe = _lookup_pipe(dest.addr); // 查找已经存在的Pipe
     if (pipe) {
       ldout(cct, 10) << "get_connection " << dest << " existing " << pipe << dendl;
     } else {
-      pipe = connect_rank(dest.addr, dest.name.type(), NULL, NULL);
+      pipe = connect_rank(dest.addr, dest.name.type(), NULL, NULL); // 创建一个Pipe并加入到msgr的register_pipe里面
       ldout(cct, 10) << "get_connection " << dest << " new " << pipe << dendl;
     }
     Mutex::Locker l(pipe->pipe_lock);
@@ -451,7 +451,7 @@ ConnectionRef SimpleMessenger::get_loopback_connection()
 {
   return local_connection;
 }
-
+// 发消息
 void SimpleMessenger::submit_message(Message *m, PipeConnection *con,
 				     const entity_addr_t& dest_addr, int dest_type,
 				     bool already_locked)
@@ -484,7 +484,7 @@ void SimpleMessenger::submit_message(Message *m, PipeConnection *con,
       pipe->pipe_lock.Lock(); // can't use a Locker because of the Pipe ref
       if (pipe->state != Pipe::STATE_CLOSED) {
 	ldout(cct,20) << "submit_message " << *m << " remote, " << dest_addr << ", have pipe." << dendl;
-	pipe->_send(m);
+	pipe->_send(m); // 把消息添加到out_q发送队列
 	pipe->pipe_lock.Unlock();
 	pipe->put();
 	return;

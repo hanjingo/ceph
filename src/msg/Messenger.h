@@ -38,7 +38,7 @@ using namespace std;
 class Timer;
 
 
-class Messenger {
+class Messenger { // 网络抽象模块,定义了网络模块的基本API接口
 private:
   list<Dispatcher*> dispatchers;
   list <Dispatcher*> fast_dispatchers;
@@ -78,14 +78,14 @@ public:
    * experiences an error, does the Connection disappear? Can this Messenger
    * re-establish the underlying connection?
    */
-  struct Policy {
-    /// If true, the Connection is tossed out on errors.
+  struct Policy { // 定义了Messenger处理Connection的一些策略
+    /// 是否当该链接出现错误时就删除
     bool lossy;
-    /// If true, the underlying connection can't be re-established from this end.
+    /// 是否为服务端（被动链接）
     bool server;
-    /// If true, we will standby when idle
+    /// 是否处于等待状态
     bool standby;
-    /// If true, we will try to detect session resets
+    /// 是否链接出错后重联
     bool resetcheck;
     /**
      *  The throttler is used to limit how much data is held by Messages from
@@ -95,9 +95,9 @@ public:
     Throttle *throttler_bytes;
     Throttle *throttler_messages;
 
-    /// Specify features supported locally by the endpoint.
+    /// 本地端的一些feature标志
     uint64_t features_supported;
-    /// Specify features any remotes must have to talk to this endpoint.
+    /// 远程端需要的一些feature标志
     uint64_t features_required;
 
     Policy()
@@ -382,10 +382,10 @@ public:
     return socket_priority;
   }
   /**
-   * Add a new Dispatcher to the front of the list. If you add
-   * a Dispatcher which is already included, it will get a duplicate
-   * entry. This will reduce efficiency but not break anything.
-   *
+   * 注册一个dispatcher用来分发消息
+   * 
+   * 
+   * 
    * @param d The Dispatcher to insert into the list.
    */
   void add_dispatcher_head(Dispatcher *d) { 
@@ -485,7 +485,7 @@ public:
    * Success in this function does not guarantee Message delivery, only
    * success in queueing the Message. Other guarantees may be provided based
    * on the Connection policy associated with the dest.
-   *
+   * 向一个节点发送消息
    * @param m The Message to send. The Messenger consumes a single reference
    * when you pass it in.
    * @param dest The entity to send the Message to.
@@ -624,8 +624,8 @@ public:
   }
 
   /**
-   * Deliver a single Message via "fast dispatch".
-   *
+   * 毫秒级快速投递
+   *    由Pipe的接收线程直接调用处理，性能好于ms_dispatch
    * @param m The Message we are fast dispatching. We take ownership
    * of one reference to it.
    * If none of our Dispatchers can handle it, ceph_abort().

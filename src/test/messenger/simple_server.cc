@@ -73,17 +73,17 @@ int main(int argc, const char **argv)
 	dest_str += ":";
 	dest_str += port;
 	entity_addr_from_url(&bind_addr, dest_str.c_str());
-
-	messenger = Messenger::create(g_ceph_context, g_conf->get_val<std::string>("ms_type"),
+	// 创建Messenger实例
+	messenger = Messenger::create(g_ceph_context, g_conf->get_val<std::string>("ms_type"), // 配置的实现类型
 				      entity_name_t::MON(-1),
 				      "simple_server",
 				      0 /* nonce */,
 				      0 /* flags */);
-	// enable timing prints
+	// 设置Messenger属性
 	messenger->set_magic(MSG_MAGIC_TRACE_CTR);
 	messenger->set_default_policy(
 	  Messenger::Policy::stateless_server(0));
-
+	// 绑定地址
 	r = messenger->bind(bind_addr);
 	if (r < 0)
 		goto out;
@@ -91,11 +91,11 @@ int main(int argc, const char **argv)
 	// Set up crypto, daemonize, etc.
 	//global_init_daemonize(g_ceph_context, 0);
 	common_init_finish(g_ceph_context);
-
+	// 创建分发器
 	dispatcher = new SimpleDispatcher(messenger);
-
+	// 添加到Messenger
 	messenger->add_dispatcher_head(dispatcher); // should reach ready()
-	messenger->start();
+	messenger->start(); // 启动
 	messenger->wait(); // can't be called until ready()
 
 	// done

@@ -39,19 +39,19 @@ class Message;
 class Messenger;
 
 struct Connection : public RefCountedObject { // socket连接封装
-  mutable Mutex lock;       // 锁保护Connection的所有字段
+  mutable Mutex lock;                               // 锁保护Connection的所有字段
   Messenger *msgr;
-  RefCountedObject *priv;   // 链接的私有数据
-  int peer_type;            // 链接的peer类型
-  entity_addr_t peer_addr;
-  utime_t last_keepalive, last_keepalive_ack;
+  RefCountedObject *priv;                           // 链接的私有数据
+  int peer_type;                                    // 链接的peer类型
+  entity_addr_t peer_addr;                          // peer的地址
+  utime_t last_keepalive, last_keepalive_ack;       // 最后一次发送keeplive的时间和最后一次接收keeplive的ACK的时间
 private:
-  uint64_t features;
+  uint64_t features;                                // 一些feature的标志位
 public:
-  bool failed; // true if we are a lossy connection that has failed.
+  bool failed;                                      // lossy链接是否已经失效
 
-  int rx_buffers_version;
-  map<ceph_tid_t,pair<bufferlist,int> > rx_buffers;
+  int rx_buffers_version;                           // 接收缓冲区的版本
+  map<ceph_tid_t,pair<bufferlist,int> > rx_buffers; // 接收缓冲区
 
   friend class boost::intrusive_ptr<Connection>;
   friend class PipeConnection;
@@ -106,10 +106,10 @@ public:
   }
 
   /**
-   * Queue the given Message to send out on the given Connection.
-   * Success in this function does not guarantee Message delivery, only
-   * success in queueing the Message. Other guarantees may be provided based
-   * on the Connection policy.
+   * 发消息
+   * 
+   *
+   * 
    *
    * @param m The Message to send. The Messenger consumes a single reference
    * when you pass it in.

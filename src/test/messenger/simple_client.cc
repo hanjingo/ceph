@@ -102,13 +102,13 @@ int main(int argc, const char **argv)
 	  "dest port " << port << " " <<
 	  "initial msgs (pipe depth) " << n_msgs << " " <<
 	  "data buffer size " << n_dsize << std::endl;
-
+	// 创建实例
 	messenger = Messenger::create(g_ceph_context, g_conf->get_val<std::string>("ms_type"),
 				      entity_name_t::MON(-1),
 				      "client",
 				      getpid(), 0);
 
-	// enable timing prints
+	// 设置策略
 	messenger->set_magic(MSG_MAGIC_TRACE_CTR);
 	messenger->set_default_policy(Messenger::Policy::lossy_client(0));
 
@@ -118,16 +118,16 @@ int main(int argc, const char **argv)
 	dest_str += port;
 	entity_addr_from_url(&dest_addr, dest_str.c_str());
 	entity_inst_t dest_server(entity_name_t::MON(-1), dest_addr);
-
+	// 创建分发器
 	dispatcher = new SimpleDispatcher(messenger);
 	messenger->add_dispatcher_head(dispatcher);
 
 	dispatcher->set_active(); // this side is the pinger
-
+	// 启动
 	r = messenger->start();
 	if (r < 0)
 		goto out;
-
+	// 开始发送请求，先获取目标server的链接
 	conn = messenger->get_connection(dest_server);
 
 	// do stuff
@@ -144,7 +144,7 @@ int main(int argc, const char **argv)
 	  } else {
 	    m = new_simple_ping_with_data("simple_client", n_dsize);
 	  }
-	  conn->send_message(m);
+	  conn->send_message(m); // 异步发送请求消息
 	}
 
 	// do stuff

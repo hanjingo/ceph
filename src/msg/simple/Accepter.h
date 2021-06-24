@@ -21,13 +21,13 @@ class SimpleMessenger;
 struct entity_addr_t;
 
 /**
- * If the SimpleMessenger binds to a specific address, the Accepter runs
- * and listens for incoming connections.
+ * 用于server端监听端口，接收链接
+ * 
  */
 class Accepter : public Thread {
   SimpleMessenger *msgr;
   bool done;
-  int listen_sd;
+  int listen_sd; // 监听的端口
   uint64_t nonce;
   int shutdown_rd_fd;
   int shutdown_wr_fd;

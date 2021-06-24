@@ -68,7 +68,7 @@ using namespace std;
  *               IncomingQueue::lock
  */
 
-class SimpleMessenger : public SimplePolicyMessenger {
+class SimpleMessenger : public SimplePolicyMessenger { // 实现Messager接口
   // First we have the public Messenger interface implementation...
 public:
   /**
@@ -136,7 +136,7 @@ public:
   int send_message(Message *m, const entity_inst_t& dest) override {
     return _send_message(m, dest);
   }
-
+  // 发消息
   int send_message(Message *m, Connection *con) {
     return _send_message(m, con);
   }
@@ -172,8 +172,8 @@ private:
    */
 
 public:
-  Accepter accepter;
-  DispatchQueue dispatch_queue;
+  Accepter accepter;            // 用于接收客户端的链接请求
+  DispatchQueue dispatch_queue; // 接收到的消息分发队列
 
   friend class Accepter;
 
@@ -279,31 +279,31 @@ private:
    *  and set false again by Accepter::stop(). This isn't lock-protected
    *  since you shouldn't be able to race the only writers.
    */
-  bool did_bind;
-  /// counter for the global seq our connection protocol uses
+  bool did_bind; // 是否绑定
+  /// 生成全局的消息seq
   __u32 global_seq;
-  /// lock to protect the global_seq
+  /// 用于保护global_seq
   ceph_spinlock_t global_seq_lock;
 
   /**
-   * hash map of addresses to Pipes
+   * 地址到pipe的映射
    *
    * NOTE: a Pipe* with state CLOSED may still be in the map but is considered
    * invalid and can be replaced by anyone holding the msgr lock
    */
   ceph::unordered_map<entity_addr_t, Pipe*> rank_pipe;
   /**
-   * list of pipes are in teh process of accepting
+   * 正在处理的pipes
    *
    * These are not yet in the rank_pipe map.
    */
   set<Pipe*> accepting_pipes;
-  /// a set of all the Pipes we have which are somehow active
+  /// 所有的pipes
   set<Pipe*>      pipes;
-  /// a list of Pipes we want to tear down
+  /// 准备释放的pipes
   list<Pipe*>     pipe_reap_queue;
 
-  /// internal cluster protocol version, if any, for talking to entities of the same type.
+  /// 内部集群的协议版本
   int cluster_protocol;
 
   Cond  stop_cond;

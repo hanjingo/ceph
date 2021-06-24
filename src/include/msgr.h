@@ -84,14 +84,14 @@ struct ceph_entity_inst {
 #define CEPH_MSGR_TAG_RETRY_GLOBAL  5  /* server->client + gseq: try again
 					  with higher gseq */
 #define CEPH_MSGR_TAG_CLOSE         6  /* closing pipe */
-#define CEPH_MSGR_TAG_MSG           7  /* message */
+#define CEPH_MSGR_TAG_MSG           7  /* 普通消息 */
 #define CEPH_MSGR_TAG_ACK           8  /* message ack */
-#define CEPH_MSGR_TAG_KEEPALIVE     9  /* just a keepalive byte! */
+#define CEPH_MSGR_TAG_KEEPALIVE     9  /* 保活消息 */
 #define CEPH_MSGR_TAG_BADPROTOVER  10  /* bad protocol version */
 #define CEPH_MSGR_TAG_BADAUTHORIZER 11 /* bad authorizer */
 #define CEPH_MSGR_TAG_FEATURES      12 /* insufficient features */
 #define CEPH_MSGR_TAG_SEQ           13 /* 64-bit int follows with seen seq number */
-#define CEPH_MSGR_TAG_KEEPALIVE2     14
+#define CEPH_MSGR_TAG_KEEPALIVE2     14 /* 在保活消息的基础上，添加了时间 */
 #define CEPH_MSGR_TAG_KEEPALIVE2_ACK 15  /* keepalive reply */
 #define CEPH_MSGR_TAG_CHALLENGE_AUTHORIZER 16  /* ceph v2 doing server challenge */
 

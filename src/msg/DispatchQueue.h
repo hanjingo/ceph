@@ -31,10 +31,10 @@ class Message;
 struct Connection;
 
 /**
- * The DispatchQueue contains all the connections which have Messages
- * they want to be dispatched, carefully organized by Message priority
- * and permitted to deliver in a round-robin fashion.
- * See Messenger::dispatch_entry for details.
+ * 分发队列
+ * 
+ *    用于把接收到的请求保存在内部，通过内部线程，
+ *    调用SimpleMessenger类注册的Dispatch类的处理函数来处理相应的消息
  */
 class DispatchQueue {
   class QueueItem {
@@ -65,11 +65,11 @@ class DispatchQueue {
   Messenger *msgr;
   mutable Mutex lock;
   Cond cond;
-
+  // 接收消息的优先队列，用来保存消息
   PrioritizedQueue<QueueItem, uint64_t> mqueue;
-
+  // 收到的消息集合，用来保存已收到的消息
   set<pair<double, Message*> > marrival;
-  map<Message *, set<pair<double, Message*> >::iterator> marrival_map;
+  map<Message *, set<pair<double, Message*> >::iterator> marrival_map; // 消息到所在集合位置的映射
   void add_arrival(Message *m) {
     marrival_map.insert(
       make_pair(
